@@ -108,3 +108,6 @@ venv.bak/
 # Datasets
 datasets/*
 !datasets/download.sh
+
+# Sandboxing code
+src_test
