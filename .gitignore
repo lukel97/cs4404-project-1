@@ -108,3 +108,12 @@ venv.bak/
 # Datasets
 datasets/*
 !datasets/download.sh
+
+# venv
+bin/
+include/
+etc/
+share/
+pip-selfcheck.json
+
+*.swp
