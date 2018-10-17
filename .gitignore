@@ -107,10 +107,11 @@ venv.bak/
 
 # Datasets
 datasets/*
+pytorch/datasets/
 !datasets/download.sh
-
-# Sandboxing code
-src_test
+!pytorch/datasets/*.sh
+!pytorch/datasets/*.py
+!pytorch/datasets/bibtex
 
 # venv
 bin/
@@ -120,3 +121,4 @@ share/
 pip-selfcheck.json
 
 *.swp
+
