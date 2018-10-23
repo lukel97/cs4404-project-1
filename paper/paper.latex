@@ -181,7 +181,9 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 
 \maketitle
 
+blah \cite{odena2016deconvolution}
+
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{sample-bibliography}
+\bibliography{bibliography}
 
 \end{document}
