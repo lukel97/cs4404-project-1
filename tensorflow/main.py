@@ -13,33 +13,51 @@ def load_image(filepath):
 
 bn = lambda x: layers.batch_norm(x, scale=True, decay=0.9, epsilon=1e-5, updates_collections=None)
 def generator(noise, dim=64):
-    net = layers.conv2d(noise, dim, 4, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
-    net = layers.conv2d(net, dim * 2, 4, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+    paddings = lambda x: tf.constant([[0,0],[x,x],[x,x],[0,0]])
 
+    net = tf.pad(noise, paddings(3), 'REFLECT')
+
+    net = layers.conv2d(net, dim, 7, padding='VALID', activation_fn=tf.nn.relu, normalizer_fn=bn)
+
+    # downsampling
+    net = layers.conv2d(net, dim * 2, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+    net = layers.conv2d(net, dim * 4, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+
+    # resnet
     def residual_cell(x, dim):
-        y = layers.conv2d(x, dim, 3, 1, activation_fn=tf.nn.relu, normalizer_fn=bn)
+        y = tf.pad(x, paddings(1), 'REFLECT')
+        y = layers.conv2d(y, dim, 3, padding='VALID', activation_fn=tf.nn.relu, normalizer_fn=bn)
+        y = tf.pad(y, paddings(1), 'REFLECT')
+        y = layers.conv2d(y, dim, 3, padding='VALID', normalizer_fn=bn)
         return x + y
 
     for i in range(9):
-        net = residual_cell(net, dim * 2)
+        net = residual_cell(net, dim * 4)
 
-    # transpose = deconv
-    net = tf.image.resize_images(net, tf.cast([dim / 2, dim / 2], tf.int32))
-    net = layers.conv2d_transpose(net, dim, 4, activation_fn=tf.nn.relu, normalizer_fn=bn)
-    net = tf.image.resize_images(net, tf.cast([dim, dim], tf.int32))
-    net = layers.conv2d_transpose(net, 3, 4, activation_fn=tf.nn.tanh)
+    # upsampling
+    net = layers.conv2d_transpose(net, dim * 4, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+    net = layers.conv2d_transpose(net, dim * 2, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+
+    net = tf.pad(net, paddings(3), 'REFLECT')
+    net = layers.conv2d(net, 3, 7, padding='VALID', activation_fn=tf.nn.tanh)
+
+    # deconv with NxN to avoid checkerboard artifacts
+    # net = tf.image.resize_images(net, tf.cast([dim / 2, dim / 2], tf.int32))
+    # net = tf.image.resize_images(net, tf.cast([dim, dim], tf.int32))
 
     return net
 
 def discriminator(img, generator_inputs, dim=64):
-    net = layers.conv2d(img, dim, 4, 2)
-    net = tf.nn.leaky_relu(net, alpha=0.2)
+    net = layers.conv2d(img, dim, 4, 2, activation_fn=tf.nn.leaky_relu)
 
     net = layers.conv2d(net, dim * 2, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
     net = layers.conv2d(net, dim * 4, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
+    net = layers.conv2d(net, dim * 8, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
+    
     net = layers.conv2d(net, dim * 8, 4, 1, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
-    net = layers.conv2d(net, 1, 4, 8)
-    return tf.sigmoid(tf.squeeze(net))
+    
+    net = layers.conv2d(net, 1, 4, 1)
+    return tf.sigmoid(net)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -80,7 +98,7 @@ if __name__ == '__main__':
 
   cyclegan_loss = tfgan.cyclegan_loss(cyclegan_model)
   gen_opt = tf.train.AdamOptimizer(0.0002, beta1=0.5)
-  dis_opt = tf.train.AdamOptimizer(0.0001, beta1=0.5)
+  dis_opt = tf.train.AdamOptimizer(0.0002, beta1=0.5)
   train_ops = tfgan.gan_train_ops(cyclegan_model,
       cyclegan_loss,
       gen_opt,
