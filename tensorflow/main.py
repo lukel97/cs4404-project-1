@@ -2,44 +2,57 @@ import argparse
 import os
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
-tfgan = tf.contrib.gan
-
-tf.logging.set_verbosity(tf.logging.INFO)
+import tensorflow.contrib.gan as tfgan
 
 def load_image(filepath):
     file = tf.read_file(filepath)
     img_decoded = tf.image.decode_jpeg(file, channels=3)
-    return tfgan.eval.preprocess_image(img_decoded, 64, 64)
+    return tfgan.eval.preprocess_image(img_decoded, 256, 256)
 
-bn = lambda x: layers.batch_norm(x, scale=True, decay=0.9, epsilon=1e-5, updates_collections=None)
+bn = lambda x: layers.batch_norm(x, scale=True, decay=0.9, epsilon=1e-5, is_training=True, updates_collections=None)
+
 def generator(noise, dim=64):
     paddings = lambda x: tf.constant([[0,0],[x,x],[x,x],[0,0]])
 
     net = tf.pad(noise, paddings(3), 'REFLECT')
-
-    net = layers.conv2d(net, dim, 7, padding='VALID', activation_fn=tf.nn.relu, normalizer_fn=bn)
+    net = layers.conv2d(net, dim, 7, 1,
+                        padding='VALID',
+                        activation_fn=tf.nn.relu,
+                        normalizer_fn=bn,
+                        biases_initializer=None)
 
     # downsampling
-    net = layers.conv2d(net, dim * 2, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
-    net = layers.conv2d(net, dim * 4, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+    net = layers.conv2d(net, dim * 2, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn, biases_initializer=None)
+    net = layers.conv2d(net, dim * 4, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn, biases_initializer=None)
 
     # resnet
     def residual_cell(x, dim):
-        y = tf.pad(x, paddings(1), 'REFLECT')
-        y = layers.conv2d(y, dim, 3, padding='VALID', activation_fn=tf.nn.relu, normalizer_fn=bn)
-        y = tf.pad(y, paddings(1), 'REFLECT')
-        y = layers.conv2d(y, dim, 3, padding='VALID', normalizer_fn=bn)
-        return x + y
+        with tf.variable_scope('rescell', reuse=tf.AUTO_REUSE):
+            y = tf.pad(x, paddings(1), 'REFLECT')
+            y = layers.conv2d(y, dim, 3, 1,
+                              padding='VALID',
+                              activation_fn=tf.nn.relu,
+                              normalizer_fn=bn,
+                              biases_initializer=None)
+            y = tf.pad(y, paddings(1), 'REFLECT')
+            y = layers.conv2d(y, dim, 3, 1, padding='VALID', normalizer_fn=bn)
+            return x + y
 
     for i in range(9):
         net = residual_cell(net, dim * 4)
 
     # upsampling
-    net = layers.conv2d_transpose(net, dim * 4, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
-    net = layers.conv2d_transpose(net, dim * 2, 3, 2, activation_fn=tf.nn.relu, normalizer_fn=bn)
+    net = layers.conv2d_transpose(net, dim * 2, 3, 2,
+                                  activation_fn=tf.nn.relu,
+                                  normalizer_fn=bn,
+                                  biases_initializer=None)
+    net = layers.conv2d_transpose(net, dim, 3, 2,
+                                  activation_fn=tf.nn.relu,
+                                  normalizer_fn=bn,
+                                  biases_initializer=None)
 
     net = tf.pad(net, paddings(3), 'REFLECT')
-    net = layers.conv2d(net, 3, 7, padding='VALID', activation_fn=tf.nn.tanh)
+    net = layers.conv2d(net, 3, 7, 1, padding='VALID', activation_fn=tf.nn.tanh)
 
     # deconv with NxN to avoid checkerboard artifacts
     # net = tf.image.resize_images(net, tf.cast([dim / 2, dim / 2], tf.int32))
@@ -48,16 +61,24 @@ def generator(noise, dim=64):
     return net
 
 def discriminator(img, generator_inputs, dim=64):
+
     net = layers.conv2d(img, dim, 4, 2, activation_fn=tf.nn.leaky_relu)
 
-    net = layers.conv2d(net, dim * 2, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
-    net = layers.conv2d(net, dim * 4, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
-    net = layers.conv2d(net, dim * 8, 4, 2, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
+    net = layers.conv2d(net, dim * 2, 4, 2, 
+                        activation_fn=tf.nn.leaky_relu,
+                        normalizer_fn=bn,
+                        biases_initializer=None)
+    net = layers.conv2d(net, dim * 4, 4, 2,
+                        activation_fn=tf.nn.leaky_relu,
+                        normalizer_fn=bn,
+                        biases_initializer=None)
+    net = layers.conv2d(net, dim * 8, 4, 1,
+                        activation_fn=tf.nn.leaky_relu,
+                        normalizer_fn=bn,
+                        biases_initializer=None)
     
-    net = layers.conv2d(net, dim * 8, 4, 1, activation_fn=tf.nn.leaky_relu, normalizer_fn=bn)
-    
-    net = layers.conv2d(net, 1, 4, 1)
-    return tf.sigmoid(net)
+    net = layers.conv2d(net, 1, 4, 1, activation_fn=None)
+    return net
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -74,17 +95,17 @@ if __name__ == '__main__':
       '--batch-size',
       type=int,
       help='Batch size',
-      default=10)
+      default=1)
   args = parser.parse_args()  
   
   batch_size = args.batch_size
 
   summer_filenames = tf.data.Dataset.list_files(os.path.join(args.data_dir, "trainA/*.jpg"))
-  summer_images = summer_filenames.map(load_image).batch(batch_size).repeat()
+  summer_images = summer_filenames.map(load_image).repeat().shuffle(1000).batch(batch_size)
   summer_iterator = summer_images.make_one_shot_iterator()
   
   winter_filenames = tf.data.Dataset.list_files(os.path.join(args.data_dir, "trainB/*.jpg"))
-  winter_images = winter_filenames.map(load_image).batch(batch_size).repeat()
+  winter_images = winter_filenames.map(load_image).repeat().shuffle(1000).batch(batch_size)
   winter_iterator = winter_images.make_one_shot_iterator()
 
   xs = summer_iterator.get_next()
@@ -96,9 +117,12 @@ if __name__ == '__main__':
   cyclegan_model = tfgan.cyclegan_model(generator, discriminator, xs, ys)
   tfgan.eval.add_cyclegan_image_summaries(cyclegan_model)
 
-  cyclegan_loss = tfgan.cyclegan_loss(cyclegan_model)
+  cyclegan_loss = tfgan.cyclegan_loss(cyclegan_model,
+                                      # speeds things up
+                                      tensor_pool_fn=tf.contrib.gan.features.tensor_pool)
   gen_opt = tf.train.AdamOptimizer(0.0002, beta1=0.5)
   dis_opt = tf.train.AdamOptimizer(0.0002, beta1=0.5)
+  
   train_ops = tfgan.gan_train_ops(cyclegan_model,
       cyclegan_loss,
       gen_opt,
@@ -111,10 +135,12 @@ if __name__ == '__main__':
         ],
         name='status_message')
 
+  tf.logging.set_verbosity(tf.logging.INFO)
+
   tfgan.gan_train(train_ops,
                   args.job_dir,
+                  save_summaries_steps=10,
                   hooks=[tf.train.StopAtStepHook(80000),
-                         tf.train.LoggingTensorHook([status_message], every_n_iter=10)],
-                  config=tf.ConfigProto(log_device_placement=True))
+                         tf.train.LoggingTensorHook([status_message], every_n_iter=10)])
 
   
