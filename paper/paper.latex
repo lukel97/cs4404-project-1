@@ -140,15 +140,23 @@ Although many Machine Learning libraries and frameworks implement the same set o
 Generative Adversarial Networks (GANs) are a type of neural network, based around the architecture of a generator and discriminator competing against each other.
 The generator tries to generate images from noise that are similar to the training data, whilst the discriminator tries to catch out the generator and distinguish the "fake" generated images from the real images.
 CycleGAN\cite{cyclegan} builds upon this by having two generators that translate images between two categories, $G: X \rightarrow Y$ and $F: Y \rightarrow X$. Additionally, it adds a cycle-consistency loss, where images are converted over and back to their original category and the difference is minimised, so that $F(G(X)) \approx X$ holds.
-The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, a machine learning framework for Lua and precursor to PyTorch, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}. 
+The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, a machine learning framework for Lua and precursor to PyTorch, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}.
+
+Recently, TensorFlow has added high-level APIs for various GAN networks. We aim to investigate how faithfully these APIs recreate the results of the original CycleGAN implementations, given that they abstract away a lot of parameters and other details. 
+
 \section{Related Work}
 \section{Methodology}
+
+We trained two datasets from the CycleGAN implementation repository: Images of Yosemite in Summer and in Winter, and photos taken with an iPhone and a DSLR. These were trained on the original PyTorch model of CycleGAN, and a TensorFlow model made using the CycleGAN APIs in \texttt{tf.contrib.gan}.
+
 \subsection{PyTorch}
 \subsection{TensorFlow}
-TensorFlow provides a suite of tools for GANs in \texttt{tf.contrib.gan}. It has functions for creating, training and evaluating GANs, including both the original model as well as variants such as StarGAN\cite{stargan}, ACGAN\cite{acgan} and of course, CycleGAN.
+TensorFlow provides a suite of tools for GANs in the experimental \texttt{tf.contrib.gan} module. It has functions for creating, training and evaluating GANs, including both the original model as well as variants such as StarGAN\cite{stargan}, ACGAN\cite{acgan} and of course, CycleGAN.
 For CycleGAN, TensorFlow provides \texttt{tf.contrib.gan.cyclegan\_model}. The user of the API must supply the generator and discriminator, and TensorFlow will handle setting up the model to connect the two together.
 
 The generator and discriminator models were created using the high-level \texttt{tf.contrib.layers} counterparts to the PyTorch implementation, including batch normalisation and reflective padding. The functions in \texttt{tf.contrib.gan} were left to their default parameters where possible, which matched those of the original paper.
+
+The images needed to preprocessed so that they were the same size and had pixel values in the range $[-1,1]$. 
 
 \section{Results & Discussion}
 
