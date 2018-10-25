@@ -101,11 +101,11 @@ if __name__ == '__main__':
   batch_size = args.batch_size
 
   summer_filenames = tf.data.Dataset.list_files(os.path.join(args.data_dir, "trainA/*.jpg"))
-  summer_images = summer_filenames.map(load_image).repeat().shuffle(1000).batch(batch_size)
+  summer_images = summer_filenames.map(load_image).repeat(200).shuffle(1000).batch(batch_size)
   summer_iterator = summer_images.make_one_shot_iterator()
   
   winter_filenames = tf.data.Dataset.list_files(os.path.join(args.data_dir, "trainB/*.jpg"))
-  winter_images = winter_filenames.map(load_image).repeat().shuffle(1000).batch(batch_size)
+  winter_images = winter_filenames.map(load_image).repeat(200).shuffle(1000).batch(batch_size)
   winter_iterator = winter_images.make_one_shot_iterator()
 
   xs = summer_iterator.get_next()
@@ -139,8 +139,7 @@ if __name__ == '__main__':
 
   tfgan.gan_train(train_ops,
                   args.job_dir,
-                  save_summaries_steps=10,
-                  hooks=[tf.train.StopAtStepHook(80000),
+                  hooks=[tf.train.StopAtStepHook(500000),
                          tf.train.LoggingTensorHook([status_message], every_n_iter=10)])
 
   
