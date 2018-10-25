@@ -44,100 +44,55 @@
 
 % These commands are optional
 %\acmBooktitle{Transactions of the ACM Woodstock conference}
-\editor{Jennifer B. Sartor}
-\editor{Theo D'Hondt}
-\editor{Wolfgang De Meuter}
+\editor{Derrick Amponsa Afrifa}
+\editor{Luke Matthew Lau}
+\editor{Martino Mansoldo}
 
 
 \begin{document}
-\title{SIG Proceedings Paper in LaTeX Format}
-\titlenote{Produces the permission block, and
-  copyright information}
-\subtitle{Extended Abstract}
+% We need a short and succinct title
+\title{CycleGAN Two Ways}
+\subtitle{A Comparison of Unpaired Image-to-Image Translation Performance with CycleGAN implemented with various Machine Learning frameworks}
 \subtitlenote{The full version of the author's guide is available as
   \texttt{acmart.pdf} document}
 
 
-\author{Ben Trovato}
-\authornote{Dr.~Trovato insisted his name be first.}
-\orcid{1234-5678-9012}
+\author{Derrick Amponsa Afrifa}
 \affiliation{%
-  \institution{Institute for Clarity in Documentation}
-  \streetaddress{P.O. Box 1212}
+  \institution{Trinity College, University of Dublin}
   \city{Dublin}
-  \state{Ohio}
-  \postcode{43017-6221}
+  \state{Republic of Ireland}
 }
-\email{trovato@corporation.com}
+\email{afrifad@tcd.ie}
 
-\author{G.K.M. Tobin}
-\authornote{The secretary disavows any knowledge of this author's actions.}
+\author{Luke Lau}
 \affiliation{%
-  \institution{Institute for Clarity in Documentation}
-  \streetaddress{P.O. Box 1212}
+  \institution{Trinity College, University of Dublin}
   \city{Dublin}
-  \state{Ohio}
-  \postcode{43017-6221}
+  \state{Republic of Ireland}
 }
-\email{webmaster@marysville-ohio.com}
+\email{laulu@tcd.ie}
 
-\author{Lars Th{\o}rv{\"a}ld}
-\authornote{This author is the
-  one who did all the really hard work.}
+\author{Martino Mansoldo}
 \affiliation{%
-  \institution{The Th{\o}rv{\"a}ld Group}
-  \streetaddress{1 Th{\o}rv{\"a}ld Circle}
-  \city{Hekla}
-  \country{Iceland}}
-\email{larst@affiliation.org}
+  \institution{Trinity College, University of Dublin}
+  \city{Dublin}
+  \country{Republic of Ireland}}
+\email{mansoldm@tcd.ie}
 
-\author{Valerie B\'eranger}
-\affiliation{%
-  \institution{Inria Paris-Rocquencourt}
-  \city{Rocquencourt}
-  \country{France}
-}
-\author{Aparna Patel}
-\affiliation{%
- \institution{Rajiv Gandhi University}
- \streetaddress{Rono-Hills}
- \city{Doimukh}
- \state{Arunachal Pradesh}
- \country{India}}
-\author{Huifen Chan}
-\affiliation{%
-  \institution{Tsinghua University}
-  \streetaddress{30 Shuangqing Rd}
-  \city{Haidian Qu}
-  \state{Beijing Shi}
-  \country{China}
-}
-
-\author{Charles Palmer}
-\affiliation{%
-  \institution{Palmer Research Laboratories}
-  \streetaddress{8600 Datapoint Drive}
-  \city{San Antonio}
-  \state{Texas}
-  \postcode{78229}}
-\email{cpalmer@prl.com}
-
-\author{John Smith}
-\affiliation{\institution{The Th{\o}rv{\"a}ld Group}}
-\email{jsmith@affiliation.org}
-
-\author{Julius P.~Kumquat}
-\affiliation{\institution{The Kumquat Consortium}}
-\email{jpkumquat@consortium.net}
 
 % The default list of authors is too long for headers.
 \renewcommand{\shortauthors}{B. Trovato et al.}
 
-
 \begin{abstract}
-This paper provides a sample of a \LaTeX\ document which conforms,
-somewhat loosely, to the formatting guidelines for
-ACM SIG Proceedings.\footnote{This is an abstract footnote}
+Although many Machine Learning libraries and frameworks implement the same set of algorithms, the manner in which they are implemented differs from library to library. One rarely finds objectively superior implementations. However, a number of key metrics can be used to evaluate the strengths and shortcomings of dissimilar approaches. This paper attempts to outline the differences in performance that result from distinct CycleGAN\cite{cyclegan} algorithms. Models are trained using the same data sets and key aspects of their performance are delineated. It is expected that an understanding of the nature of the differences will reveal new optimisation avenues.\break
+1.Introduction. In one sentence, what's the topic?\break
+2.State the problem you tackle\break
+3.Summarize (in one sentence) why nobody else has adequately answered the research question yet\break
+4.Explain, in one sentence, how you tackled the research question\break
+5.In one sentence, how did you go about doing the research that follows from your big idea.\break
+6.As a single sentence, what's the key impact of your research
+\footnote{This is an abstract footnote}
 \end{abstract}
 
 %
@@ -176,14 +131,33 @@ ACM SIG Proceedings.\footnote{This is an abstract footnote}
 \ccsdesc[100]{Networks~Network reliability}
 
 
-\keywords{ACM proceedings, \LaTeX, text tagging}
+\keywords{machine learning, neural networks, generative adversarial networks}
 
 
 \maketitle
 
-blah \cite{odena2016deconvolution}
+\section{Introduction}
+Generative Adversarial Networks (GANs) are a type of neural network, based around the architecture of a generator and discriminator competing against each other.
+The generator tries to generate images from noise that are similar to the training data, whilst the discriminator tries to catch out the generator and distinguish the "fake" generated images from the real images.
+CycleGAN\cite{cyclegan} builds upon this by having two generators that translate images between two categories, $G: X \rightarrow Y$ and $F: Y \rightarrow X$. Additionally, it adds a cycle-consistency loss, where images are converted over and back to their original category and the difference is minimised, so that $F(G(X)) \approx X$ holds.
+The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, a machine learning framework for Lua and precursor to PyTorch, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}. 
+\section{Related Work}
+\section{Methodology}
+\subsection{PyTorch}
+\subsection{TensorFlow}
+TensorFlow provides a suite of tools for GANs in \texttt{tf.contrib.gan}. It has functions for creating, training and evaluating GANs, including both the original model as well as variants such as StarGAN\cite{stargan}, ACGAN\cite{acgan} and of course, CycleGAN.
+For CycleGAN, TensorFlow provides \texttt{tf.contrib.gan.cyclegan\_model}. The user of the API must supply the generator and discriminator, and TensorFlow will handle setting up the model to connect the two together.
+
+The generator and discriminator models were created using the high-level \texttt{tf.contrib.layers} counterparts to the PyTorch implementation, including batch normalisation and reflective padding. The functions in \texttt{tf.contrib.gan} were left to their default parameters where possible, which matched those of the original paper.
+
+\section{Results & Discussion}
+
+\section{Limitations & Outlook}
+We observed small, checkerboard artefacts in the output images. Odena et. al describe the cause of these and methods to circumvent it\cite{odena2016deconvolution}.
+% TensorFlow padding is funny?
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
 
 \end{document}
+
