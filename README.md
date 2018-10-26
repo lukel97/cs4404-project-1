@@ -36,5 +36,9 @@ Checkpoints and samples are saved in the checkpoint folder.
 
 Our CycleGAN setup took ~20 hours to train over 200 epochs on the summer2winter_yosemite dataset.
 
+![](https://github.com/bubba/cs4404-project-1/blob/master/pytorch/results/summer2winter_yosemite_0.png "Example 0")
+![](https://github.com/bubba/cs4404-project-1/blob/master/pytorch/results/summer2winter_yosemite_1.png "Example 1")
+![](https://github.com/bubba/cs4404-project-1/blob/master/pytorch/results/summer2winter_yosemite_2.png "Example 2")
+![](https://github.com/bubba/cs4404-project-1/blob/master/pytorch/results/summer2winter_yosemite_3.png "Example 3")
 
  
