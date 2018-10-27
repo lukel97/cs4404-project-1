@@ -121,3 +121,4 @@ share/
 pip-selfcheck.json
 
 *.swp
+*.psd
