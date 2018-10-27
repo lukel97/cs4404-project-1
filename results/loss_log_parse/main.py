@@ -25,13 +25,6 @@ for i, line in enumerate(lines):
     line_match = re.findall(parens_matcher, line).pop()
     matches = [s for s in line_match.split(' ') if s]
     
-    parsed_arr = []
-    i = 1
-    while i < len(matches):
-        parsed_arr.append(matches[i].strip()[:-1])
-        i += 2
-    
-    epoch, iteration = parsed_arr[:2]
     epoch, iteration = matches[1].strip()[:-1], matches[3][:-1] 
     exclude_parens_match = '(' + line_match+')'
     matches_losses = line[len(exclude_parens_match):].strip().split(' ')
