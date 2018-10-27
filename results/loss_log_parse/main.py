@@ -11,6 +11,12 @@ translate = { 'D_A' : 'y2x_discriminator',
                 'G_B':'x2y_generator',
                 'cycle_B':'y2y_cycle_consistency',
                 'idt_B': 'idt_B'}
+files = {}
+for key in translate:
+    f = open("pytorch_" + translate[key] + ".csv", "a+")
+    f.write('Epoch,Step,Value')
+    files[key] = f
+
 print_every = 20
 for i, line in enumerate(lines):
     if not (i % print_every):
@@ -35,6 +41,9 @@ for i, line in enumerate(lines):
         i += 2
 
     for key in translate.keys():
-        f = open("summer2winter_yosemite_" + translate[key]+'.csv','a+' )
+        f = files[key]
         f.write(epoch+','+iteration+','+parsed_losses[key]+'\n')
-        f.close()
+
+
+for key in translate.keys():
+    files[key].close()
