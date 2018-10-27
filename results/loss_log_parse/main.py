@@ -3,18 +3,19 @@ import re
 
 lines = [line for line  in open(sys.stdin.readline().strip())]
 parens_matcher = r'\((.*?)\)'
-translate = { 'D_A' : 'y2x_discriminator',
-                'G_A':'y2x_generator',
-                'cycle_A':'x2x_cycle_consistency',
-                'idt_A':'idtA',
-                'D_B':'x2y_discriminator',
-                'G_B':'x2y_generator',
-                'cycle_B':'y2y_cycle_consistency',
-                'idt_B': 'idt_B'}
+translate = { 'D_A' : 'W2SDiscLoss',
+                'G_A':'W2SGenLoss',
+                'cycle_A':'CycleConsistencySLoss',
+                'idt_A':'IdtS',
+                'D_B':'S2WDiscLoss',
+                'G_B':'S2WGenLoss',
+                'cycle_B':'CycleConsistencyWLoss',
+                'idt_B': 'IdtW'}
 files = {}
+column_names = 'Epoch,Step,Value\n'
 for key in translate:
-    f = open("pytorch_" + translate[key] + ".csv", "a+")
-    f.write('Epoch,Step,Value')
+    f = open("pyTorch" + translate[key] + ".csv", "a+")
+    f.write(column_names)
     files[key] = f
 
 print_every = 20
@@ -31,7 +32,7 @@ for i, line in enumerate(lines):
         i += 2
     
     epoch, iteration = parsed_arr[:2]
-    
+    epoch, iteration = matches[1].strip()[:-1], matches[3][:-1] 
     exclude_parens_match = '(' + line_match+')'
     matches_losses = line[len(exclude_parens_match):].strip().split(' ')
     parsed_losses = {}
