@@ -14,7 +14,13 @@
 
 \usepackage{booktabs} % For formal tables
 \usepackage{subcaption}
+\usepackage{pgfplots}
+\usepackage{import}
+\subimport{layers/}{init}
 
+\settopmatter{printacmref=false} % Removes citation information below abstract
+\renewcommand\footnotetextcopyrightpermission[1]{} % removes footnote with conference information in first column
+\pagestyle{plain} % removes running headers
 
 % Copyright
 %\setcopyright{none}
@@ -36,13 +42,11 @@
 \begin{document}
 % We need a short and succinct title
 \title{CycleGAN Two Ways}
-\subtitle{A Comparison of Unpaired Image-to-Image Translation Performance with Cycle-Consistent Adversarial Networks implemented with various Machine Learning frameworks}
-\subtitlenote{The full version of the author's guide is available as
-  \texttt{acmart.pdf} document}
+\subtitle{A Comparison of Unpaired Image-to-Image Translation Performance with Cycle-Consistent Adversarial Networks implemented with different Machine Learning frameworks}
 
 
 \author{Derrick Amponsa Afrifa}
-\affiliation{%
+\affiliation{
   \institution{Trinity College, University of Dublin}
   \city{Dublin}
   \state{Republic of Ireland}
@@ -50,7 +54,7 @@
 \email{afrifad@tcd.ie}
 
 \author{Luke Lau}
-\affiliation{%
+\affiliation{
   \institution{Trinity College, University of Dublin}
   \city{Dublin}
   \state{Republic of Ireland}
@@ -58,14 +62,15 @@
 \email{laulu@tcd.ie}
 
 \author{Martino Mansoldo}
-\affiliation{%
+\affiliation{
   \institution{Trinity College, University of Dublin}
   \city{Dublin}
-  \country{Republic of Ireland}}
+  \country{Republic of Ireland}
+ }
 \email{mansoldm@tcd.ie}
 
 \begin{abstract}
-Although many Machine Learning libraries and frameworks implement the same set of algorithms, the manner in which they are implemented differs from library to library. One rarely finds objectively superior implementations. However, a number of key metrics can be used to evaluate the strengths and shortcomings of dissimilar approaches. This paper attempts to outline the differences in performance that result from distinct CycleGAN\cite{cyclegan} algorithms. Models are trained using the same data sets and key aspects of their performance are delineated. It is expected that an understanding of the nature of the differences will reveal new optimisation avenues.
+Although many Machine Learning libraries and frameworks implement the same set of algorithms, the manner in which they are implemented differs from library to library. One rarely finds objectively superior implementations. However, a number of key metrics can be used to evaluate the strengths and shortcomings of dissimilar approaches. This paper attempts to outline the differences in performance that result from implementations of CycleGAN\cite{cyclegan} in two popular frameworks for Machine Learning. Models are trained using the same data sets and key aspects of their performance are delineated. It is expected that an understanding of the nature of the differences will reveal new optimisation avenues.
 
 % \break
 % 1.Introduction. In one sentence, what's the topic?\break
@@ -74,7 +79,6 @@ Although many Machine Learning libraries and frameworks implement the same set o
 % 4.Explain, in one sentence, how you tackled the research question\break
 % 5.In one sentence, how did you go about doing the research that follows from your big idea.\break
 % 6.As a single sentence, what's the key impact of your research
-\footnote{This is an abstract footnote}
 \end{abstract}
 
 \keywords{machine learning, neural networks, generative adversarial networks, tensorflow, pytorch}
@@ -86,24 +90,72 @@ Although many Machine Learning libraries and frameworks implement the same set o
 Generative Adversarial Networks (GANs) are a type of neural network, based around the architecture of a generator and discriminator competing against each other.
 The generator tries to generate images from noise that are similar to the training data, whilst the discriminator tries to catch out the generator and distinguish the "fake" generated images from the real images.
 CycleGAN\cite{cyclegan} builds upon this by having two generators that translate images between two categories, $G: X \rightarrow Y$ and $F: Y \rightarrow X$. Additionally, it adds a cycle-consistency loss, where images are converted over and back to their original category and the difference is minimised, so that $F(G(X)) \approx X$ holds.
-The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, a machine learning framework for Lua and precursor to PyTorch, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}.
+
+PyTorch and TensorFlow are two popular Machine Learning frameworks that either have either implementations or APIs for CycleGAN. We aim to find what qualitative (not performance)  differences exist when implementing identical CycleGAN model architectures side-by-side. 
 
 \section{Related Work}
-\subsection{Face-off, facial recreation in Keras}
+PyTorch began as the Python implementation of \href{https://github.com/junyanz/CycleGAN}{Torch}, a Machine Learning framework for Torch, and provides a large amount of extensiblility for implementing deep architectures\cite{bahrampour2015comparative}. It builds up a computation graph dynamically as the program is run.
+In contrast, TensorFlow\cite{abadi2016tensorflow}, developed at Google, builds up its computational graph before training and evaluating. This graph describes the flow of tensors throughout the network, hence the etymology.
+Benchmarks of Torch and TensorFlow\cite{shi2016benchmarking} have shown that neither framework has a particular advantage in training time on GPUs.  
 
 \section{Methodology}
-We implemented the PyTorch's model as faithfully as possible in TensorFlow. They were then both trained on a dataset of images of Yosemite taken in both Summer and Winter, from the original paper as well. 
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \pic at (0,0,0) {ConvRelu={blockname=conv1,
+            numFilters={{"3",""}},height=10,width={0.5},depth=10,zlabel=256}};
+        \pic[shift={(0.5,0,0)}] at (conv1-east) {ConvRelu={blockname=conv2,
+            numFilters={{"64",""}},height=10,width=2,depth=10,zlabel=256}};
+        \pic[shift={(0.5,0,0)}] at (conv2-east) {ConvRelu={blockname=conv3,
+            numFilters={{"128",""}},height=5,width=4,depth=5,zlabel=128}};
+        \pic[shift={(0.5,0,0)}] at (conv3-east) {GenericSequentialLayer={blockname=resnet,
+            numFilters={{"","","","","$64\times9$","","","",""}},height=2.5,width={1,1,1,1,1,1,1,1,1},depth=2.5,zlabel=64}};
+        \pic[shift={(0,0,0)}] at (resnet-east) {Deconv={blockname=deconv1,
+            numFilters={{"128",""}},height=5,width=4,depth=5,zlabel=128}};
+        \pic[shift={(0.5,0,0)}] at (deconv1-east) {Deconv={blockname=deconv2,
+            numFilters={{"64",""}},height=10,width=2,depth=10,zlabel=256}};
+        \pic[shift={(0.5,0,0)}] at (deconv2-east) {Conv={blockname=final,
+            numFilters={{"3",""}},height=10,width=0.5,depth=10,zlabel=256}};
+    \end{tikzpicture}
+    \caption{Generator architecture from left to right. The centre layer is the residual layer.}
+    \label{fig:generatorarch}
+\end{figure}
+
+We implemented the PyTorch's model as faithfully as possible in TensorFlow. They were then both trained on a dataset of images of Yosemite National Park, CA, US taken in both Summer and Winter, from the original paper as well. 
+
+The \textit{generator} architecture, shown in figure \ref{fig:generatorarch}, is made up of three convolution layers, an inner ResNet\cite{resnet} and three deconvolution layers. The convolution and deconvolution layers have ReLU activations. The inner ResNet is made up of nine residual blocks, which sum the input to the block with the two convolutions of it, and help the network `retain' information.
+
+At a high level, the idea is that the downscaling convolution layers extract the features of the image, the ResNet applies the transformation $A \rightarrow B$ to this information, and the upscaling deconvolution layers then generate the image from the transformed information. 
 
 \subsection{PyTorch}
 There are currently no implementations of GANs built into the PyTorch framework.
-The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, a machine learning framework for Lua and precursor to PyTorch, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}. For this paper we used the PyTorch implementation with the default arguments and hyper-parameters. 
+The original implementation that accompanied the paper was in \href{https://github.com/junyanz/CycleGAN}{Torch}, however the authors also provided an implementation for \href{https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix}{PyTorch}. For this paper we used the PyTorch implementation with the default arguments and hyper-parameters. 
 
-The \textit{generator} is an adaptation of a UNet Network \cite{unet} with skip connections between downscaling and upscaling blocks, as well as a few residual blocks. The skip connections are there such that extra information about images is propagated to the upscaling blocks from the downscaling blocks before the actual downscaling operation is performed. Downscaling blocks are Leaky ReLU layers while upscaling blocks use the normal ReLU activation function.\\ At a high level, the idea is that the downscaling convolutional blocks extract the features of the image, the residual blocks apply the transformation $A \rightarrow B$ to this information, and the upscaling convolutional blocks then generate the image from the transformed information. 
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \tikzstyle{connection}=[ultra thick,every node/.style={sloped,allow upside down},draw=\edgecolor,opacity=0.7]
 
-The \textit{discriminator} is simply a ConvNet. It consists of 3 Leaky ReLU layers, the first of which has 64 features.
+        \pic at (0,0,0) {ConvRelu={blockname=conv1,
+            numFilters={{"3",""}},height=10,width={0.5},depth=10,zlabel=256}};
+        \pic[shift={(0.5,0,0)}] at (conv1-east) {ConvRelu={blockname=conv2,
+            numFilters={{"64",""}},height=10,width=2,depth=10,zlabel=256}};
+        \pic[shift={(0.5,0,0)}] at (conv2-east) {ConvRelu={blockname=conv3,
+            numFilters={{"128",""}},height=5,width=4,depth=5,zlabel=128}};
+        \pic[shift={(0.5,0,0)}] at (conv3-east) {ConvRelu={blockname=conv4,
+            numFilters={{"128",""}},height=5,width=4,depth=5,zlabel=128}};
+        \pic[shift={(0.5,0,0)}] at (conv4-east) {Conv={blockname=conv5,
+            numFilters={{"128",""}},height=5,width=4,depth=5,zlabel=128}};
+    \end{tikzpicture}
+    \caption{Discriminator architecture from left to right.}
+    \label{fig:discriminatorarch}
+\end{figure}
 
-As per the very definition of CycleGAN, two generators and two discriminators are used.
-Each network is optimised using Adam \cite{adam_optimizer}, a common extension of Stochastic Gradient Descent, using \texttt{torch.optim.Adam}.
+The \textit{discriminator} is a ConvNet that consists of 4 layers with Leaky ReLU activations and one layer without.
+
+As per the definition of CycleGAN, two generators and two discriminators are used.
+Each network is optimised with Adam \cite{adam_optimizer}, a common extension of Stochastic Gradient Descent, using \texttt{torch.optim.Adam}.
 
 \subsection{TensorFlow}
 TensorFlow provides a suite of tools for GANs in \texttt{tf.contrib.gan}. It has functions for creating, training and evaluating GANs, including both the original model as well as variants such as StarGAN\cite{stargan}, ACGAN\cite{acgan} and of course, CycleGAN.
@@ -111,14 +163,61 @@ For CycleGAN, TensorFlow provides \texttt{tf.contrib.gan.cyclegan\_model}. The u
 
 The generator and discriminator models were created using the high-level \texttt{tf.contrib.layers} counterparts to the PyTorch implementation, including batch normalisation and reflective padding. The functions in \texttt{tf.contrib.gan} were left to their default parameters where possible, which matched those of the original paper.
 
-The images needed to preprocessed so that they were the same size and had pixel values in the range $[-1,1]$.
+The images needed to be preprocessed so that they had pixel values in the range $[-1,1]$, and that they were all the same size. Additionally, there is reflective padding at the first, last and residual block convolution layers to prevent artefacts around image edges.
 
-\section{Results & Discussion}
+\section{Results and Discussion}
+
+Both networks had satisfactory results. Results for converting winter to summer are shown in figure~\ref{fig:winter2summer}. TensorFlow emphasised making the vegetation appear greener/brighter much more so than PyTorch, and in some cases learnt to convert snow to lake water.
+
+Figure~\ref{fig:cycleconsistencyloss} shows the cycle-consistency loss (CCL) between the two different frameworks. At first glance PyTorch has a much larger loss, but when viewing the results qualitatively there was very little difference. The reason for the discrepancy in the CCLs is that TensorFlow\footnote{See the  \href{https://github.com/tensorflow/tensorflow/blob/c19e29306ce1777456b2dbb3a14f511edf7883a8/tensorflow/contrib/gan/python/losses/python/losses_impl.py?fbclid=IwAR2-OjbG_uheJzR1d93U4T6mH6AIBHx6xvkrT5nTYdbuJkfVUFdtPxGaF0E#L954-L955}{source} 
+for more information} normalises the losses so that it is always between 1 and 0. This ensures that the CCL weight does not depend on the size of the images.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.3\columnwidth]{testImages/test_image_4_winter.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/test_image_4_w2s.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png} \\ 
+    \includegraphics[width=0.3\columnwidth]{testImages/winter0.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/winter0_w2s.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png} \\ 
+    \caption{From left to right: Original winter, TensorFlow summer, PyTorch summer}
+    \label{fig:winter2summer}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.3\columnwidth]{testImages/summer1.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/summer1_s2w.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/summer1_s2w.jpg} \\ 
+    \caption{From left to right: Original summer, TensorFlow winter, PyTorch winter}
+    \label{fig:winter2summer}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+    \begin{axis} [
+        title=Cycle Consistency Loss,
+        xlabel=Epochs,
+        ylabel=Loss
+    ]
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfCycleConsistencyLoss.csv};
+        \addlegendentry{TensorFlow}
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchCycleConsistencyLoss.csv};
+        \addlegendentry{PyTorch}
+    \end{axis}
+    \end{tikzpicture}
+    \caption{Cycle-Consistency Loss (Average of both generators)}
+    \label{fig:cycleconsistencyloss}
+\end{figure}
 
 \section{Limitations}
-We observed small, checkerboard artefacts in the output images. Odena et al. describe the cause of these and methods to circumvent it\cite{odena2016deconvolution}.
+The model fails on images with snow in the immediate landscape. 
+
+We observed small, checkerboard artefacts in the output images. Odena et al.\cite{odena2016deconvolution} describe the cause of these and methods to circumvent it.
 
 \section{Further Work}
+\subsection{Converting to DSLR}
 \begin{figure}
     \centering
     \begin{subfigure}{\linewidth}
@@ -129,13 +228,97 @@ We observed small, checkerboard artefacts in the output images. Odena et al. des
         \includegraphics[width=\linewidth]{iphone2dslr.png}
         \caption{Phone to DSLR, back to phone.}
     \end{subfigure}
-    \label{fig:dslr2iphone}
     \caption{Images converted with CycleGAN to look like they were taken with either a phone or a DSLR. Bokeh gets added in the generated DSLR images, whilst it is stripped in the phone pictures.}
+    \label{fig:dslr2iphone}
 \end{figure}
 
-The TensorFlow model was also trained on a dataset of images of flowers, taken on phones and DSLRs. The results are shown in \ref{fig:dslr2iphone}. The model learnt that DSLR photos typically have a bokeh effect, but unfortunately it also tries to swap out the colours. This may have been caused by one dataset having a particular set of colours more-so than the other, and we speculate this might be fixed by having a larger dataset. Interestingly enough though, the cycle-consistency loss also teaches the network how to reverse the colour swap almost perfectly.
+The TensorFlow model was also trained on a dataset of images of flowers, taken on phones and DSLRs. This dataset is also taken from the CycleGAN repository, and took around 20 hours to train. The results are shown in figure~\ref{fig:dslr2iphone}. The model learnt that DSLR photos typically have a bokeh effect, but unfortunately it also tries to swap out the colours. This may have been caused by one dataset having a particular set of colours more-so than the other, and we speculate this might be fixed by having a larger dataset to prevent overfitting. Interestingly enough though, the cycle-consistency loss also teaches the network how to reverse the colour swap almost perfectly.
+
+\subsection{Face-off facial recreation in Keras}
+This CycleGAN attempts to create a new face from an input face. Results are displayed in video format. The generated face mimics the facial expression of the input face. This architecture is implemented in Keras, a popular high level framework for machine learning. For the Generator a UNet\cite{unet} is used. For the discriminator the network is a convolutional network with Leaky RELU as well as batch normalisation. An Adam\cite{adam_optimizer} optimiser is employed in the training process. 
+\begin{figure}
+    \centering
+    \begin{subfigure}{\linewidth}
+        \includegraphics[width=\linewidth]{cyclegan_face.png}
+        \caption{From top to bottom: Input, Fake, Recreate of the input.}
+    \end{subfigure}
+    \caption{Face-off facial recreation}
+\end{figure}
 
 % TensorFlow padding is funny?
+
+
+
+\begin{figure*}
+    \centering
+    \begin{subfigure}{0.5\linewidth}
+        \begin{tikzpicture}
+        \begin{axis} [
+            xlabel=Epochs,
+            ylabel=Loss (logarithmic),
+            ymode=log
+        ]
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfS2WDiscLoss.csv};
+            \addlegendentry{TensorFlow}
+
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchS2WDiscLoss.csv};
+            \addlegendentry{PyTorch}
+        \end{axis}
+        \end{tikzpicture}
+        \caption{Discriminator loss $\text{summer} \rightarrow \text{winter}$}
+    \end{subfigure}
+    ~
+    \begin{subfigure}[t]{0.5\linewidth}
+        \begin{tikzpicture}
+        \begin{axis} [
+            xlabel=Epochs,
+            ylabel=Loss (logarithmic),
+            ymode=log
+        ]
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfW2SDiscLoss.csv};
+            \addlegendentry{TensorFlow}
+
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchW2SDiscLoss.csv};
+            \addlegendentry{PyTorch}
+        \end{axis}
+        \end{tikzpicture}
+        \caption{Discriminator loss $\text{winter} \rightarrow \text{summer}$}
+    \end{subfigure}
+    \\
+    \begin{subfigure}{0.5\linewidth}
+        \begin{tikzpicture}
+        \begin{axis} [
+            xlabel=Epochs,
+            ylabel=Loss (logarithmic),
+            ymode=log
+        ]
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfS2WGenLoss.csv};
+            \addlegendentry{TensorFlow}
+             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchS2WGenLoss.csv};
+            \addlegendentry{PyTorch}
+        \end{axis}
+        \end{tikzpicture}
+        \caption{Generator loss $\text{summer} \rightarrow \text{winter}$}
+    \end{subfigure}
+    ~
+    \begin{subfigure}{0.5\linewidth}
+        \begin{tikzpicture}
+        \begin{axis} [
+            xlabel=Epochs,
+            ylabel=Loss (logarithmic),
+            ymode=log
+        ]
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfW2SGenLoss.csv};
+            \addlegendentry{TensorFlow}
+             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchW2SGenLoss.csv};
+            \addlegendentry{PyTorch}
+        \end{axis}
+        \end{tikzpicture}
+        \caption{Generator loss $\text{winter} \rightarrow \text{summer}$}
+    \end{subfigure}
+    
+    \caption{Individual losses of the generators and discriminators}
+\end{figure*}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{bibliography}
