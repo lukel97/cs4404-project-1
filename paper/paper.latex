@@ -1,5 +1,5 @@
 %%%% Proceedings format for most of ACM conferences (with the exceptions listed below) and all ICPS volumes.
-\documentclass[sigconf]{acmart}
+\documentclass[sigconf, screen=true]{acmart}
 %%%% As of March 2017, [siggraph] is no longer used. Please use sigconf (above) for SIGGRAPH conferences.
 
 %%%% Proceedings format for SIGPLAN conferences 
@@ -169,8 +169,10 @@ The images needed to be preprocessed so that they had pixel values in the range 
 
 Both networks had satisfactory results. Results for converting winter to summer are shown in figure~\ref{fig:winter2summer}. TensorFlow emphasised making the vegetation appear greener/brighter much more so than PyTorch, and in some cases learnt to convert snow to lake water.
 
+In figure~\ref{fig:gendisclosses}, the individual losses of the generators and discriminator are very similar and do not have any major differences.
 Figure~\ref{fig:cycleconsistencyloss} shows the cycle-consistency loss (CCL) between the two different frameworks. At first glance PyTorch has a much larger loss, but when viewing the results qualitatively there was very little difference. The reason for the discrepancy in the CCLs is that TensorFlow\footnote{See the  \href{https://github.com/tensorflow/tensorflow/blob/c19e29306ce1777456b2dbb3a14f511edf7883a8/tensorflow/contrib/gan/python/losses/python/losses_impl.py?fbclid=IwAR2-OjbG_uheJzR1d93U4T6mH6AIBHx6xvkrT5nTYdbuJkfVUFdtPxGaF0E#L954-L955}{source} 
 for more information} normalises the losses so that it is always between 1 and 0. This ensures that the CCL weight does not depend on the size of the images.
+
 
 \begin{figure}
     \centering
@@ -179,7 +181,7 @@ for more information} normalises the losses so that it is always between 1 and 0
     \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png} \\ 
     \includegraphics[width=0.3\columnwidth]{testImages/winter0.jpg}
     \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/winter0_w2s.jpg}
-    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png} \\ 
+    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png}
     \caption{From left to right: Original winter, TensorFlow summer, PyTorch summer}
     \label{fig:winter2summer}
 \end{figure}
@@ -189,8 +191,11 @@ for more information} normalises the losses so that it is always between 1 and 0
     \includegraphics[width=0.3\columnwidth]{testImages/summer1.jpg}
     \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/summer1_s2w.jpg}
     \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/summer1_s2w.jpg} \\ 
+    \includegraphics[width=0.3\columnwidth]{testImages/test_image_2_summer.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/test_image_2_s2w.jpg}
+    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_2_s2w.png}
     \caption{From left to right: Original summer, TensorFlow winter, PyTorch winter}
-    \label{fig:winter2summer}
+    \label{fig:summer2winter}
 \end{figure}
 
 \begin{figure}
@@ -212,7 +217,7 @@ for more information} normalises the losses so that it is always between 1 and 0
 \end{figure}
 
 \section{Limitations}
-The model fails on images with snow in the immediate landscape. 
+The model fails on images with snow in the immediate landscape, as it not always able to completely remove it. It also has difficulty converting images of landscapes outside of Yosemite and mountain ranges.
 
 We observed small, checkerboard artefacts in the output images. Odena et al.\cite{odena2016deconvolution} describe the cause of these and methods to circumvent it.
 
@@ -318,6 +323,7 @@ This CycleGAN attempts to create a new face from an input face. Results are disp
     \end{subfigure}
     
     \caption{Individual losses of the generators and discriminators}
+    \label{fig:gendisclosses}
 \end{figure*}
 
 \bibliographystyle{ACM-Reference-Format}
