@@ -122,7 +122,7 @@ Benchmarks of Torch and TensorFlow\cite{shi2016benchmarking} have shown that nei
     \label{fig:generatorarch}
 \end{figure}
 
-We implemented the PyTorch's model as faithfully as possible in TensorFlow. They were then both trained on a dataset of images of Yosemite National Park, CA, US taken in both Summer and Winter, from the original paper as well. 
+We implemented the PyTorch's model as faithfully as possible in TensorFlow. They were then both trained on a dataset of images of Yosemite National Park, CA, US taken in both Summer and Winter, from the original paper as well. There are 1812 images in the Summer training set and 3325 images in the Winter training set, although a batch size of 200 was used.
 
 The \textit{generator} architecture, shown in figure \ref{fig:generatorarch}, is made up of three convolution layers, an inner ResNet\cite{resnet} and three deconvolution layers. The convolution and deconvolution layers have ReLU activations. The inner ResNet is made up of nine residual blocks, which sum the input to the block with the two convolutions of it, and help the network `retain' information.
 
