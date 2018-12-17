@@ -237,7 +237,7 @@ Figure~\ref{fig:trainingprogress} shows that qualitatively, the PyTorch implemen
     \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png} \\ 
     \includegraphics[width=0.3\columnwidth]{testImages/winter0.jpg}
     \includegraphics[width=0.3\columnwidth]{testImages/tensorflow/winter0_w2s.jpg}
-    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_4_w2s.png}
+    \includegraphics[width=0.3\columnwidth]{testImages/pytorch/winter0_w2s.png}
     \caption{From left to right: Original winter, TensorFlow summer, PyTorch summer}
     \label{fig:winter2summer}
 \end{figure}
@@ -260,15 +260,25 @@ Figure~\ref{fig:trainingprogress} shows that qualitatively, the PyTorch implemen
     \begin{axis} [
         title=Cycle Consistency Loss,
         xlabel=Epochs,
-        ylabel=Loss
+        ylabel=Loss,
+        no markers,
+        cycle multi list={
+            orange,purple\nextlist
+            dashed,solid
+        }
     ]
-        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfCycleConsistencyLoss.csv};
-        \addlegendentry{TensorFlow}
-        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchCycleConsistencyLoss.csv};
-        \addlegendentry{PyTorch}
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/cycleConsistencyLoss.csv};
+        \addlegendentry{TensorFlow $\text{Summer} \rightarrow \text{Winter}$}
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/iphone2dslr_flower/cycleConsistencyLoss.csv};
+        \addlegendentry{TensorFlow $\text{iPhone} \rightarrow \text{DSLR}$}
+        
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={100}]{csvs/pytorch/summer2winter_yosemite/cycleConsistencyLoss.csv};
+        \addlegendentry{PyTorch $\text{Summer} \rightarrow \text{Winter}$}
+        \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={100}]{csvs/pytorch/iphone2dslr_flower/cycleConsistencyLoss.csv};
+        \addlegendentry{PyTorch $\text{iPhone} \rightarrow \text{DSLR}$}
     \end{axis}
     \end{tikzpicture}
-    \caption{Cycle-Consistency Loss (Average of both generators)}
+    \caption{Cycle-Consistency Loss (Average of both generators). (PyTorch $\text{iPhone} \rightarrow \text{DSLR}$ was only trained for 60 epochs}
     \label{fig:cycleconsistencyloss}
 \end{figure}
 
@@ -306,76 +316,118 @@ This CycleGAN attempts to create a new face from an input face. Results are disp
     \caption{Face-off facial recreation}
 \end{figure}
 
-% TensorFlow padding is funny?
-
-
-
+% Some macros for the datasets
+\def\STW{$\text{Summer} \rightarrow \text{Winter}$}
+\def\WTS{$\text{Winter} \rightarrow \text{Summer}$}
+\def\iTD{$\text{iPhone} \rightarrow \text{DSLR}$}
+\def\DTi{$\text{DSLR} \rightarrow \text{iPhone}$}
+    
 \begin{figure*}
     \centering
     \begin{subfigure}{0.5\linewidth}
         \begin{tikzpicture}
-        \begin{axis} [
+        \begin{axis}[
             xlabel=Epochs,
             ylabel=Loss (logarithmic),
-            ymode=log
+            ymode=log,
+            no markers,
+            cycle multi list={
+                orange,purple\nextlist
+                dashed,solid
+            }
         ]
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfS2WDiscLoss.csv};
-            \addlegendentry{TensorFlow}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/S2WDiscLoss.csv};
+            \addlegendentry{TensorFlow \STW}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/iphone2dslr_flower/i2DDiscLoss.csv};
+            \addlegendentry{TensorFlow \iTD}
 
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchS2WDiscLoss.csv};
-            \addlegendentry{PyTorch}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/summer2winter_yosemite/S2WDiscLoss.csv};
+            \addlegendentry{PyTorch \STW}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/iphone2dslr_flower/i2DDiscLoss.csv};
+            \addlegendentry{PyTorch \iTD}
         \end{axis}
         \end{tikzpicture}
-        \caption{Discriminator loss $\text{summer} \rightarrow \text{winter}$}
+        \caption{Discriminator loss $\text{X} \rightarrow \text{Y}$}
     \end{subfigure}
     ~
     \begin{subfigure}{0.5\linewidth}
         \begin{tikzpicture}
-        \begin{axis} [
+        \begin{axis}[
             xlabel=Epochs,
             ylabel=Loss (logarithmic),
-            ymode=log
+            ymode=log,
+            no markers,
+            cycle multi list={
+                orange,purple\nextlist
+                dashed,solid
+            }
         ]
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfW2SDiscLoss.csv};
-            \addlegendentry{TensorFlow}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/W2SDiscLoss.csv};
+            \addlegendentry{TensorFlow \WTS}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/iphone2dslr_flower/D2iDiscLoss.csv};
+            \addlegendentry{TensorFlow \DTi}
 
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchW2SDiscLoss.csv};
-            \addlegendentry{PyTorch}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/summer2winter_yosemite/W2SDiscLoss.csv};
+            \addlegendentry{PyTorch \WTS}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/iphone2dslr_flower/D2iDiscLoss.csv};
+            \addlegendentry{PyTorch \DTi}
         \end{axis}
         \end{tikzpicture}
-        \caption{Discriminator loss $\text{winter} \rightarrow \text{summer}$}
+        \caption{Discriminator loss $\text{Y} \rightarrow \text{X}$}
     \end{subfigure}
     \\
     \begin{subfigure}{0.5\linewidth}
         \begin{tikzpicture}
-        \begin{axis} [
+        \begin{axis}[
             xlabel=Epochs,
             ylabel=Loss (logarithmic),
-            ymode=log
+            ymode=log,
+            no markers,
+            cycle multi list={
+                orange,purple\nextlist
+                dashed,solid
+            },
+            legend pos=south east
         ]
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfS2WGenLoss.csv};
-            \addlegendentry{TensorFlow}
-             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchS2WGenLoss.csv};
-            \addlegendentry{PyTorch}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/S2WGenLoss.csv};
+            \addlegendentry{TensorFlow \STW}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/iphone2dslr_flower/i2DGenLoss.csv};
+            \addlegendentry{TensorFlow \iTD}
+
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/summer2winter_yosemite/S2WGenLoss.csv};
+            \addlegendentry{PyTorch \STW}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/iphone2dslr_flower/i2DGenLoss.csv};
+            \addlegendentry{PyTorch \iTD}
         \end{axis}
         \end{tikzpicture}
-        \caption{Generator loss $\text{summer} \rightarrow \text{winter}$}
+        \caption{Generator loss $\text{X} \rightarrow \text{Y}$}
     \end{subfigure}
     ~
     \begin{subfigure}{0.5\linewidth}
         \begin{tikzpicture}
-        \begin{axis} [
+        \begin{axis}[
             xlabel=Epochs,
             ylabel=Loss (logarithmic),
-            ymode=log
+            ymode=log,
+            no markers,
+            cycle multi list={
+                orange,purple\nextlist
+                dashed,solid
+            },
+            legend pos=south east
         ]
-            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{tfW2SGenLoss.csv};
-            \addlegendentry{TensorFlow}
-             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{pyTorchW2SGenLoss.csv};
-            \addlegendentry{PyTorch}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/W2SGenLoss.csv};
+            \addlegendentry{TensorFlow \WTS}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/iphone2dslr_flower/D2iGenLoss.csv};
+            \addlegendentry{TensorFlow \DTi}
+
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/summer2winter_yosemite/W2SGenLoss.csv};
+            \addlegendentry{PyTorch \WTS}
+            \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={150}]{csvs/pytorch/iphone2dslr_flower/D2iGenLoss.csv};
+            \addlegendentry{PyTorch \DTi}
         \end{axis}
         \end{tikzpicture}
-        \caption{Generator loss $\text{winter} \rightarrow \text{summer}$}
+        \caption{Generator loss $\text{Y} \rightarrow \text{S}$}
     \end{subfigure}
     
     \caption{Individual losses of the generators and discriminators}
