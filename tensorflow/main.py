@@ -96,6 +96,12 @@ if __name__ == '__main__':
       type=int,
       help='Batch size',
       default=1)
+  parser.add_argument(
+      '-r',
+      '--record-all-checkpoints',
+      type=bool,
+      help='Record all checkpoints',
+      default=False)
   args = parser.parse_args()  
   
   batch_size = args.batch_size
@@ -137,9 +143,12 @@ if __name__ == '__main__':
 
   tf.logging.set_verbosity(tf.logging.INFO)
 
+  hooks = [tf.train.StopAtStepHook(500000),
+           tf.train.LoggingTensorHook([status_message], every_n_iter=10)]
+
+  if args.record_all_checkpoints:
+    hooks.append(tf.train.CheckpointSaverHook(os.path.join(args.job_dir, 'persistent_checkpoints'), save_steps=1231, saver=tf.train.Saver(max_to_keep=1e100)))
+
   tfgan.gan_train(train_ops,
                   args.job_dir,
-                  hooks=[tf.train.StopAtStepHook(500000),
-                         tf.train.LoggingTensorHook([status_message], every_n_iter=10)])
-
-  
+                  hooks=hooks)
