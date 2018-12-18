@@ -41,6 +41,13 @@
 
 
 \begin{document}
+
+% Some macros for the datasets
+\def\STW{$\text{Summer} \rightarrow \text{Winter}$}
+\def\WTS{$\text{Winter} \rightarrow \text{Summer}$}
+\def\iTD{$\text{iPhone} \rightarrow \text{DSLR}$}
+\def\DTi{$\text{DSLR} \rightarrow \text{iPhone}$}
+
 % We need a short and succinct title
 \title{CycleGAN Two Ways}
 \subtitle{A Comparison of Unpaired Image-to-Image Translation Performance with Cycle-Consistent Adversarial Networks implemented with different Machine Learning frameworks}
@@ -125,8 +132,8 @@ Benchmarks\cite{shi2016benchmarking} of Torch and TensorFlow have shown that nei
     \label{fig:generatorarch}
 \end{figure}
 
-For the PyTorch model, the implementation from the original authors of the paper was used. We then implemented this model as faithfully as possible in TensorFlow. Both models were trained on two different \hyperref[sec:datasets]{datasets}.
-% a set of photographs of Yosemite National Park, CA, US taken in both Summer and Winter, and a set of photographs of flowers taken with an iPhone and a DSLR camera. There are 1812 images in the Summer training set and 3325 images in the Winter training set, although a batch size of 200 was used.
+For the PyTorch model, the implementation from the original authors of the paper was used. We then implemented this model as faithfully as possible in TensorFlow. Both models were trained on two different \hyperref[sec:datasets]{datasets}: a set of photographs of Yosemite National Park, CA, US taken in both Summer and Winter, and a set of photographs of flowers taken with an iPhone and a DSLR camera. There are 1232 Summer images and 963 Winter images in the Summer to Winter dataset, and 1813 iPhone images and 3326 DSLR images in the iPhone to DSLR dataset.
+Each dataset took around 20 hours to train 200 epochs.
 
 The \textit{generator} architecture, shown in figure \ref{fig:generatorarch}, is made up of three convolution layers, an inner ResNet\cite{resnet} and three deconvolution layers. The convolution and deconvolution layers have ReLU activations. The inner ResNet is made up of nine residual blocks, which sum the input to the block with the two convolutions of it, and help the network `retain' information.
 
@@ -178,57 +185,13 @@ The images needed to be preprocessed so that they had pixel values in the range 
 
 Both networks had satisfactory results. Results for converting winter to summer are shown in figure~\ref{fig:winter2summer}. TensorFlow emphasised making the vegetation appear greener/brighter much more so than PyTorch, and in some cases learnt to convert snow to lake water.
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-    \begin{axis}[
-        width=\columnwidth,
-        unit vector ratio*=1 2,
-        xmin=0,
-        xmax=10,
-        ymin=0,
-        ymax=3,
-        xtick={1,3,5,7,9},
-        xticklabels={2,4,6,8,10},
-        ytick={0.5,1.5,2.5},
-        yticklabels={PyTorch, TensorFlow, Input},
-        xlabel=Epoch
-        ]
-        
-        % Original images
-        \addplot graphics[xmin=0,ymin=2,xmax=2,ymax=3] {progressImages/real_epoch002};
-        \addplot graphics[xmin=2,ymin=2,xmax=4,ymax=3] {progressImages/real_epoch004};
-        \addplot graphics[xmin=4,ymin=2,xmax=6,ymax=3] {progressImages/real_epoch006};
-        \addplot graphics[xmin=6,ymin=2,xmax=8,ymax=3] {progressImages/real_epoch008};
-        \addplot graphics[xmin=8,ymin=2,xmax=10,ymax=3] {progressImages/real_epoch010};
-        
-        % TensorFlow images
-        \addplot graphics[xmin=0,ymin=1,xmax=2,ymax=2] {progressImages/tensorflow_epoch002};
-        \addplot graphics[xmin=2,ymin=1,xmax=4,ymax=2] {progressImages/tensorflow_epoch004};
-        \addplot graphics[xmin=4,ymin=1,xmax=6,ymax=2] {progressImages/tensorflow_epoch006};
-        \addplot graphics[xmin=6,ymin=1,xmax=8,ymax=2] {progressImages/tensorflow_epoch008};
-        \addplot graphics[xmin=8,ymin=1,xmax=10,ymax=2] {progressImages/tensorflow_epoch010};
-
-        % PyTorch images
-        \addplot graphics[xmin=0,ymin=0,xmax=2,ymax=1] {progressImages/pytorch_epoch002};
-        \addplot graphics[xmin=2,ymin=0,xmax=4,ymax=1] {progressImages/pytorch_epoch004};
-        \addplot graphics[xmin=4,ymin=0,xmax=6,ymax=1] {progressImages/pytorch_epoch006};
-        \addplot graphics[xmin=6,ymin=0,xmax=8,ymax=1] {progressImages/pytorch_epoch008};
-        \addplot graphics[xmin=8,ymin=0,xmax=10,ymax=1] {progressImages/pytorch_epoch010};
-    \end{axis}
-    \end{tikzpicture}
-    
-    \caption{Progress made during training}
-    
-    \label{fig:trainingprogress}
-\end{figure}
-
-Figure~\ref{fig:cycleconsistencyloss} shows the cycle-consistency loss (CCL) between the two different frameworks. At first glance PyTorch has a much larger loss, but when viewing the results qualitatively there was very little difference. The reason for the discrepancy in the CCLs is that TensorFlow\footnote{See the  \href{https://github.com/tensorflow/tensorflow/blob/c19e29306ce1777456b2dbb3a14f511edf7883a8/tensorflow/contrib/gan/python/losses/python/losses_impl.py?fbclid=IwAR2-OjbG_uheJzR1d93U4T6mH6AIBHx6xvkrT5nTYdbuJkfVUFdtPxGaF0E#L954-L955}{source} 
+Figure~\ref{fig:cycleconsistencyloss} shows the cycle-consistency loss (CCL) between the two different frameworks. At first glance PyTorch has a much larger loss, but when viewing the final results, qualitatively there was very little difference. The reason for the discrepancy in the CCLs is that TensorFlow\footnote{See the  \href{https://github.com/tensorflow/tensorflow/blob/c19e29306ce1777456b2dbb3a14f511edf7883a8/tensorflow/contrib/gan/python/losses/python/losses_impl.py?fbclid=IwAR2-OjbG_uheJzR1d93U4T6mH6AIBHx6xvkrT5nTYdbuJkfVUFdtPxGaF0E#L954-L955}{source} 
 for more information} normalises the losses so that it is always between 1 and 0. This ensures that the CCL weight does not depend on the size of the images.
 
-However both of the generator and discriminator losses for TensorFlow and PyTorch, shown in figure~\ref{fig:gendisclosses}, are extremely noisy, but this is expected due to the competitive nature of GANs\cite{qi2017loss}. It behaves similar to a zero-sum game where a decrease in the generator loss correlates to an increase in the discriminator loss, and vice-versa.
-Figure~\ref{fig:trainingprogress} shows that qualitatively, the PyTorch implementation appeared to converge much faster. We are unsure as to why this is the case.
+Quantitatively, the generator and discriminator losses for TensorFlow and PyTorch, shown in figure~\ref{fig:gendisclosses}, are very noisy and show no real improvement over time, but this is expected due to the competitive nature of GANs\cite{qi2017loss}. It behaves similar to a zero-sum game where a decrease in the generator loss correlates to an increase in the discriminator loss, and vice-versa.
+However this makes it difficult to find a reliable metric to measure their performance during training, but we can trust that the model is learning by taking images during training. Figure~\ref{fig:trainingprogress} shows an improvement over the first 10 epochs (improvement was much slower over the later epochs).
 
+We observed interesting artefacts for the \iTD dataset on TensorFlow, where the results are shown in figure~\ref{fig:dslr2iphone}. The model learnt that DSLR photos typically have a bokeh effect, but unfortunately it also tries to swap out the colours. This may have been caused by one dataset having a particular set of colours more-so than the other, and we speculate this might be fixed by having a larger dataset to prevent overfitting. Interestingly enough though, the cycle-consistency loss also teaches the network how to reverse the colour swap almost perfectly.
 
 \begin{figure}
     \centering
@@ -252,6 +215,20 @@ Figure~\ref{fig:trainingprogress} shows that qualitatively, the PyTorch implemen
     \includegraphics[width=0.3\columnwidth]{testImages/pytorch/test_image_2_s2w.png}
     \caption{From left to right: Original summer, TensorFlow winter, PyTorch winter}
     \label{fig:summer2winter}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{\linewidth}
+        \includegraphics[width=\linewidth]{dslr2iphone.png}
+        \caption{DSLR to phone, back to DSLR.}
+    \end{subfigure}
+    \begin{subfigure}{\linewidth}
+        \includegraphics[width=\linewidth]{iphone2dslr.png}
+        \caption{Phone to DSLR, back to phone.}
+    \end{subfigure}
+    \caption{Images converted with CycleGAN to look like they were taken with either a phone or a DSLR. Bokeh gets added in the generated DSLR images, whilst it is stripped in the phone pictures.}
+    \label{fig:dslr2iphone}
 \end{figure}
 
 \begin{figure}
@@ -288,22 +265,66 @@ The model fails on images with snow in the immediate landscape, as it not always
 We observed small, checkerboard artefacts in the output images. Odena et al.\cite{odena2016deconvolution} describe the cause of these and methods to circumvent it.
 
 \section{Further Work}
-\subsection{Converting to DSLR}
-\begin{figure}
-    \centering
-    \begin{subfigure}{\linewidth}
-        \includegraphics[width=\linewidth]{dslr2iphone.png}
-        \caption{DSLR to phone, back to DSLR.}
-    \end{subfigure}
-    \begin{subfigure}{\linewidth}
-        \includegraphics[width=\linewidth]{iphone2dslr.png}
-        \caption{Phone to DSLR, back to phone.}
-    \end{subfigure}
-    \caption{Images converted with CycleGAN to look like they were taken with either a phone or a DSLR. Bokeh gets added in the generated DSLR images, whilst it is stripped in the phone pictures.}
-    \label{fig:dslr2iphone}
-\end{figure}
 
-The TensorFlow model was also trained on a dataset of images of flowers, taken on phones and DSLRs. This dataset is also taken from the CycleGAN repository, and took around 20 hours to train. The results are shown in figure~\ref{fig:dslr2iphone}. The model learnt that DSLR photos typically have a bokeh effect, but unfortunately it also tries to swap out the colours. This may have been caused by one dataset having a particular set of colours more-so than the other, and we speculate this might be fixed by having a larger dataset to prevent overfitting. Interestingly enough though, the cycle-consistency loss also teaches the network how to reverse the colour swap almost perfectly.
+\begin{figure*}
+    \centering
+    \begin{tikzpicture}
+    \begin{axis}[
+        width=\linewidth,
+        unit vector ratio*=1 2,
+        xmin=0,
+        xmax=20,
+        ymin=0,
+        ymax=3,
+        xtick={1,3,5,7,9,11,13,15,17,19},
+        xticklabels={5,10,15,20,25,30,35,40,45,50},
+        ytick={0.5,1.5,2.5},
+        yticklabels={PyTorch, TensorFlow, Input},
+        xlabel=Epoch
+        ]
+        
+        % Original images
+        \addplot graphics[xmin=0,ymin=2,xmax=2,ymax=3]   {progressImages/original/epoch005};
+        \addplot graphics[xmin=2,ymin=2,xmax=4,ymax=3]   {progressImages/original/epoch010};
+        \addplot graphics[xmin=4,ymin=2,xmax=6,ymax=3]   {progressImages/original/epoch015};
+        \addplot graphics[xmin=6,ymin=2,xmax=8,ymax=3]   {progressImages/original/epoch020};
+        \addplot graphics[xmin=8,ymin=2,xmax=10,ymax=3]  {progressImages/original/epoch025};
+        \addplot graphics[xmin=10,ymin=2,xmax=12,ymax=3] {progressImages/original/epoch030};
+        \addplot graphics[xmin=12,ymin=2,xmax=14,ymax=3] {progressImages/original/epoch035};
+        \addplot graphics[xmin=14,ymin=2,xmax=16,ymax=3] {progressImages/original/epoch040};
+        \addplot graphics[xmin=16,ymin=2,xmax=18,ymax=3] {progressImages/original/epoch045};
+        \addplot graphics[xmin=18,ymin=2,xmax=20,ymax=3] {progressImages/original/epoch050};
+        
+        % TensorFlow images
+        \addplot graphics[xmin=0,ymin=1,xmax=2,ymax=2]   {progressImages/tensorflow/epoch005};
+        \addplot graphics[xmin=2,ymin=1,xmax=4,ymax=2]   {progressImages/tensorflow/epoch010};
+        \addplot graphics[xmin=4,ymin=1,xmax=6,ymax=2]   {progressImages/tensorflow/epoch015};
+        \addplot graphics[xmin=6,ymin=1,xmax=8,ymax=2]   {progressImages/tensorflow/epoch020};
+        \addplot graphics[xmin=8,ymin=1,xmax=10,ymax=2]  {progressImages/tensorflow/epoch025};
+        \addplot graphics[xmin=10,ymin=1,xmax=12,ymax=2] {progressImages/tensorflow/epoch030};
+        \addplot graphics[xmin=12,ymin=1,xmax=14,ymax=2] {progressImages/tensorflow/epoch035};
+        \addplot graphics[xmin=14,ymin=1,xmax=16,ymax=2] {progressImages/tensorflow/epoch040};
+        \addplot graphics[xmin=16,ymin=1,xmax=18,ymax=2] {progressImages/tensorflow/epoch045};
+        \addplot graphics[xmin=18,ymin=1,xmax=20,ymax=2] {progressImages/tensorflow/epoch050};
+
+        % PyTorch images
+        \addplot graphics[xmin=0,ymin=0,xmax=2,ymax=1]   {progressImages/pytorch/epoch005};
+        \addplot graphics[xmin=2,ymin=0,xmax=4,ymax=1]   {progressImages/pytorch/epoch010};
+        \addplot graphics[xmin=4,ymin=0,xmax=6,ymax=1]   {progressImages/pytorch/epoch015};
+        \addplot graphics[xmin=6,ymin=0,xmax=8,ymax=1]   {progressImages/pytorch/epoch020};
+        \addplot graphics[xmin=8,ymin=0,xmax=10,ymax=1]  {progressImages/pytorch/epoch025};
+        \addplot graphics[xmin=10,ymin=0,xmax=12,ymax=1] {progressImages/pytorch/epoch030};
+        \addplot graphics[xmin=12,ymin=0,xmax=14,ymax=1] {progressImages/pytorch/epoch035};
+        \addplot graphics[xmin=14,ymin=0,xmax=16,ymax=1] {progressImages/pytorch/epoch040};
+        \addplot graphics[xmin=16,ymin=0,xmax=18,ymax=1] {progressImages/pytorch/epoch045};
+        \addplot graphics[xmin=18,ymin=0,xmax=20,ymax=1] {progressImages/pytorch/epoch050};
+    \end{axis}
+    \end{tikzpicture}
+    
+    \caption{Progress made during training \WTS}
+    
+    \label{fig:trainingprogress}
+\end{figure*}
 
 \subsection{Face-off facial recreation in Keras}
 This CycleGAN attempts to create a new face from an input face. Results are displayed in video format. The generated face mimics the facial expression of the input face. This architecture is implemented in Keras, a popular high level framework for machine learning. For the Generator a UNet\cite{unet} is used. For the discriminator the network is a convolutional network with Leaky RELU as well as batch normalisation. An Adam\cite{adam_optimizer} optimiser is employed in the training process. 
@@ -315,12 +336,6 @@ This CycleGAN attempts to create a new face from an input face. Results are disp
     \end{subfigure}
     \caption{Face-off facial recreation}
 \end{figure}
-
-% Some macros for the datasets
-\def\STW{$\text{Summer} \rightarrow \text{Winter}$}
-\def\WTS{$\text{Winter} \rightarrow \text{Summer}$}
-\def\iTD{$\text{iPhone} \rightarrow \text{DSLR}$}
-\def\DTi{$\text{DSLR} \rightarrow \text{iPhone}$}
     
 \begin{figure*}
     \centering
@@ -387,7 +402,7 @@ This CycleGAN attempts to create a new face from an input face. Results are disp
                 orange,purple\nextlist
                 dashed,solid
             },
-            legend pos=south east
+            legend style={at={(0.5,-0.1)},anchor=north}
         ]
             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/S2WGenLoss.csv};
             \addlegendentry{TensorFlow \STW}
@@ -414,7 +429,7 @@ This CycleGAN attempts to create a new face from an input face. Results are disp
                 orange,purple\nextlist
                 dashed,solid
             },
-            legend pos=south east
+            legend style={at={(0.5,-0.1)},anchor=north}
         ]
             \addplot table [x=Epoch, y=Value, col sep=comma, each nth point={50}]{csvs/tensorflow/summer2winter_yosemite/W2SGenLoss.csv};
             \addlegendentry{TensorFlow \WTS}
